@@ -60,10 +60,10 @@ class BgaDeckController extends AbstractController
             $faction = $heroRef ? (explode('_', $heroRef)[3] ?? null) : null;
 
             return [
-                'hero'      => $heroRef,
-                'faction'   => $faction,
-                'apiId'     => (string) $deck->getId(),
-                'deckName'  => $deck->getName(),
+                'alterator' => ['reference' => $heroRef],
+                'faction'   => ['reference' => $faction],
+                'id'        => (string) $deck->getId(),
+                'name'      => $deck->getName(),
                 'cardCount' => $deck->getStats()['totalCards'] ?? 0,
             ];
         }, $decks);
