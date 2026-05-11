@@ -45,9 +45,15 @@ class BgaDeckController extends AbstractController
 
         /*$decks    = $this->deckRepository->findBgaDecks($user, $page, $itemsPerPage, $name, $factions, $hero, $format, self::BGA_VALID_FORMATS);
         $total    = $this->deckRepository->countBgaDecks($user, $name, $factions, $hero, $format, self::BGA_VALID_FORMATS);*/
-        $decks = $this->deckRepository->findAll();
-        $total = count($decks);
+        $allDecks = $this->deckRepository->findAll();
+        $total = count($allDecks);
         $lastPage = max(1, (int) ceil($total / $itemsPerPage));
+
+        $decks = array_slice(
+            $allDecks,
+            ($page - 1) * $itemsPerPage,
+            $itemsPerPage
+        );
 
         $deckData = array_map(function (Deck $deck) {
             $heroRef = $deck->getStats()['hero']['reference'] ?? null;
