@@ -68,17 +68,47 @@ class BgaDeckController extends AbstractController
             ];
         }, $decks);
 
+        $lastPage = max(1, (int) ceil($total / $itemsPerPage));
+
+        $hydraView = [
+            '@id' => sprintf(
+                '/api/bga/decks?itemsPerPage=%d&page=%d',
+                $itemsPerPage,
+                $page
+            ),
+            '@type' => 'hydra:PartialCollectionView',
+
+            'hydra:first' => sprintf(
+                '/api/bga/decks?itemsPerPage=%d&page=1',
+                $itemsPerPage,
+            ),
+
+            'hydra:last' => sprintf(
+                '/api/bga/decks?itemsPerPage=%d&page=%d',
+                $itemsPerPage,
+                $lastPage
+            ),
+        ];
+
+        if ($page < $lastPage) {
+            $hydraView['hydra:next'] = sprintf(
+                '/api/bga/decks?itemsPerPage=%d&page=%d',
+                $itemsPerPage,
+                $page + 1
+            );
+        }
+
+        if ($page > 1) {
+            $hydraView['hydra:previous'] = sprintf(
+                '/api/bga/decks?itemsPerPage=%d&page=%d',
+                $itemsPerPage,
+                $page - 1
+            );
+        }
+
         return $this->json([
-            'success' => 1,
-            'content' => [
-                'decks'      => $deckData,
-                'pagination' => [
-                    'current'  => (string) $page,
-                    'last'     => (string) $lastPage,
-                    'previous' => $page > 1 ? (string) ($page - 1) : '',
-                    'next'     => $page < $lastPage ? (string) ($page + 1) : '',
-                ],
-            ],
+            'hydra:members' => $deckData,
+            'hydra:view'   => $hydraView,
         ]);
     }
 
