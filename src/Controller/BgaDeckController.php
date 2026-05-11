@@ -107,7 +107,7 @@ class BgaDeckController extends AbstractController
         }
 
         return $this->json([
-            'hydra:members' => $deckData,
+            'hydra:member' => $deckData,
             'hydra:view'   => $hydraView,
         ]);
     }
