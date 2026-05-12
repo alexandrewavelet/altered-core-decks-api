@@ -181,6 +181,10 @@ class DeckNormalizer implements NormalizerInterface, NormalizerAwareInterface
             $entry['card'] = $content;
 
             $key = strtolower($card['cardType']['reference']);
+            if($key === 'expedition_permanent' || $key === 'landmark_permanent') {
+                $key = 'permanent';
+            }
+
             if(!array_key_exists($key, $cards)) {
                 $cards[$key]['deckUserListCard'] = [];
             }
@@ -194,7 +198,7 @@ class DeckNormalizer implements NormalizerInterface, NormalizerAwareInterface
             'faction' => ['reference' => $faction],
             'deckLegality' => ['resume' => ['globalValidity' => true]],
             'alterator' => ['reference' => $data['stats']['hero']['reference']],
-            'cardQuantity' => $data['stats']['totalCards'],
+            'cardQuantity' => (int) $data['stats']['totalCards'],
             'deckCardsByType' => $cards
         ];
     }
