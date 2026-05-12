@@ -2,9 +2,10 @@
 
 namespace App\Controller;
 
-use App\Entity\Deck;
+use App\Client\AlteredCoreClient;
 use App\Entity\User;
 use App\Repository\DeckRepository;
+use App\Serializer\BgaDeckSerializer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -12,15 +13,17 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\SerializerInterface;
+use App\Entity\Deck;
 
 class BgaDeckController extends AbstractController
 {
     private const BGA_VALID_FORMATS = ['standard', 'nuc', 'sandbox'];
 
     public function __construct(
-        private readonly DeckRepository      $deckRepository,
+        private readonly DeckRepository   $deckRepository,
+        private readonly Security         $security,
         private readonly SerializerInterface $serializer,
-        private readonly Security            $security,
+        private readonly AlteredCoreClient $alteredCoreClient
     ) {}
 
     #[Route('/api/bga/decks', name: 'api_bga_decks_collection', methods: ['GET'])]
@@ -46,6 +49,12 @@ class BgaDeckController extends AbstractController
         /*$decks    = $this->deckRepository->findBgaDecks($user, $page, $itemsPerPage, $name, $factions, $hero, $format, self::BGA_VALID_FORMATS);
         $total    = $this->deckRepository->countBgaDecks($user, $name, $factions, $hero, $format, self::BGA_VALID_FORMATS);*/
         $allDecks = $this->deckRepository->findAll();
+        foreach ($allDecks as $key => $deck) {
+            $check = $deck->getStats()['hero']['reference'] ?? null;
+            if(!$check) {
+                unset($allDecks[$key]);
+            }
+        }
         $total = count($allDecks);
         $lastPage = max(1, (int) ceil($total / $itemsPerPage));
 
@@ -132,5 +141,23 @@ class BgaDeckController extends AbstractController
         ]);
 
         return $this->json($data);
+    }
+
+    #[Route(
+        '/api/bga/cards/{id}',
+        name: 'api_bga_cards_item',
+        methods: ['GET'],
+    )]
+    public function card(string $reference): JsonResponse
+    {
+        $card = $this->alteredCoreClient->getCardByReferences($reference);
+
+        if (empty($card)) {
+            throw new NotFoundHttpException();
+        }
+
+        return $this->json([
+
+        ]);
     }
 }
