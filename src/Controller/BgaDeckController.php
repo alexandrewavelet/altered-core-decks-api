@@ -148,7 +148,7 @@ class BgaDeckController extends AbstractController
     }
 
     #[Route(
-        '/api/bga/cards/{id}',
+        '/api/bga/cards/{reference}',
         name: 'api_bga_cards_item',
         methods: ['GET'],
     )]
@@ -156,12 +156,76 @@ class BgaDeckController extends AbstractController
     {
         $card = $this->alteredCoreClient->getCardByReferences($reference);
 
+        $cardElements[] = $this->generateMainEffect($card);
+
+        $cardElements = array_filter($cardElements);
+
         if (empty($card)) {
             throw new NotFoundHttpException();
         }
 
         return $this->json([
-
+            'reference' => $card['reference'],
+            'mainFaction' => ['reference' => $card['faction']['code']],
+            'name' => $card['name'],
+            'cardType' => ['reference' => $card['cardType']['reference']],
+            'subTypes' => $card['cardSubTypes'],
+            'illustrator' => ['nickName' => $card['artists'][0]['name']],
+            'elements' => [
+                'MAIN_COST' => $card['mainCost'],
+                'RECALL_COST' => $card['recallCost'],
+                'FOREST_POWER' => $card['forestPower'],
+                'MOUNTAIN_POWER' => $card['mountainPower'],
+                'OCEAN_POWER' => $card['oceanPower'],
+            ],
+            'cardElements' => $cardElements,
         ]);
+    }
+
+    private function generateMainEffect(array $card): array
+    {
+        $cardEffectDisplays = [];
+        if(array_key_exists('effect1', $card)) {
+            $cardEffectDisplays[] = $this->generateEffectDisplay($card['effect1'], 1);
+        }
+        if(array_key_exists('effect2', $card)) {
+            $cardEffectDisplays[] = $this->generateEffectDisplay($card['effect2'], 2);
+        }
+        if(array_key_exists('effect3', $card)) {
+            $cardEffectDisplays[] = $this->generateEffectDisplay($card['effect3'], 3);
+        }
+
+
+        return [
+            'cardElementType' => ['reference' => 'MAIN_EFFECT'],
+            'cardEffectDisplays' => $cardEffectDisplays,
+        ];
+    }
+
+    private function generateEffectDisplay(array $effect, int $sequence)
+    {
+        return [
+            'cardEffect' => [
+                'cardEffectElements' => [
+                    [
+                        'idGd' => $effect['abilityTrigger']['alteredId'],
+                        'type' => 'TRIGGER',
+                        'text' => $effect['abilityTrigger']['text']
+                    ],
+                    [
+                        'idGd' => $effect['abilityCondition']['alteredId'],
+                        'type' => 'OUTPUT',
+                        'text' => $effect['abilityCondition']['text']
+                    ],
+                    [
+                        'idGd' => $effect['abilityEffect']['alteredId'],
+                        'type' => 'CONDITION',
+                        'text' => $effect['abilityEffect']['text']
+                    ],
+                ],
+                'reference' => $effect['abilityKey'],
+                'sequence' => $sequence
+            ]
+        ];
     }
 }
