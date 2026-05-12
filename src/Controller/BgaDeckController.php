@@ -48,7 +48,7 @@ class BgaDeckController extends AbstractController
 
         /*$decks    = $this->deckRepository->findBgaDecks($user, $page, $itemsPerPage, $name, $factions, $hero, $format, self::BGA_VALID_FORMATS);
         $total    = $this->deckRepository->countBgaDecks($user, $name, $factions, $hero, $format, self::BGA_VALID_FORMATS);*/
-        $allDecks = $this->deckRepository->findAll();
+        $allDecks = $this->deckRepository->findBy(['format' => 'NO_UNIQUE']);
         $allDecks = array_slice($allDecks, 0, 200);
 
 
@@ -77,6 +77,7 @@ class BgaDeckController extends AbstractController
                 'id'        => (string) $deck->getId(),
                 'name'      => $deck->getName(),
                 'cardCount' => $deck->getStats()['totalCards'] ?? 0,
+                'format'    => $deck->getFormat(),
             ];
         }, $decks);
 
