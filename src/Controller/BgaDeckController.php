@@ -48,7 +48,7 @@ class BgaDeckController extends AbstractController
 
         /*$decks    = $this->deckRepository->findBgaDecks($user, $page, $itemsPerPage, $name, $factions, $hero, $format, self::BGA_VALID_FORMATS);
         $total    = $this->deckRepository->countBgaDecks($user, $name, $factions, $hero, $format, self::BGA_VALID_FORMATS);*/
-        $allDecks = $this->deckRepository->findBy(['format' => 'NO_UNIQUE']);
+        $allDecks = $this->deckRepository->findBy(['format' => 'STANDARD']);
         $allDecks = array_slice($allDecks, 0, 200);
 
 
